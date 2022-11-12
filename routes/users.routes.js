@@ -19,10 +19,10 @@ users.get('/:id', async (req, res) => {
   return res.send(user)
 })
 
-users.get('/company/:company', (req, res) => {
+users.get('/company/:company', async (req, res) => {
   const { company } = req.params
 
-  const user = USERS_BBDD.find(user => user.company === company)
+  const user = await userModel.find({company: company })
 
   if (!user) return res.status(404).send()
 
@@ -53,11 +53,15 @@ users.post('/', async (req, res) => {
   return res.send()
 })
 
-users.put('/:guid', (req, res) => {
-  const { guid } = req.params
-  const { age, name, gender, company, email, phone } = req.body
+users.put('/:id', async (req, res) => {
+  
+  const { id } = req.params
 
-  const user = USERS_BBDD.find(user => user.guid === guid)
+  const { name, age, gender, company, email, phone } = req.body
+
+  if (!name) return res.status(400).send();
+
+  const user =  await userModel.findById(id)
 
   if (!user) return res.status(404).send()
 
@@ -67,8 +71,11 @@ users.put('/:guid', (req, res) => {
   user.company = company
   user.email = email
   user.phone = phone
-  
+
+  await user.save()
+
   return res.send(user)
+
 })
 
 users.delete('/:guid', (req, res) => {
