@@ -29,11 +29,8 @@ users.get('/company/:company', async (req, res) => {
   return res.send(user)
 })
 
-users.get('/age/30', (req, res) => {
-  const users = USERS_BBDD.map(user => {
-    if (user.age < 30)
-      return user
-  })
+users.get('/age/30', async (req, res) => {
+  const users = await userModel.find({ age: { $lt: 30 } })
   return res.send(users)
 })
 
@@ -78,16 +75,16 @@ users.put('/:id', async (req, res) => {
 
 })
 
-users.delete('/:guid', (req, res) => {
-  const { guid } = req.params
+users.delete('/:id', async (req, res) => {
+  const { id } = req.params
 
-  const userIndex = USERS_BBDD.findIndex(user => user.guid === guid)
+    const user = await userModel.findById(id)
+    
+    if (!user) return res.status(404).send()
 
-  if (userIndex === -1) return res.status(404).send()
-  
-  USERS_BBDD.splice(userIndex, 1)
+    await user.remove()
 
-  return res.send()
+    return res.send()
 })
 
 export default users
