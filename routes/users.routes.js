@@ -1,16 +1,18 @@
 import { Router } from 'express'
-import { USERS_BBDD } from '.././DataBase/USERS_BBDD.js'
+import userModel from './schemas/user.schemas.js'
 
 const users = Router()
 
-users.get('/', (req, res) => {
-  return res.send(USERS_BBDD)
+users.get('/', async (req, res) => {
+  const users = await userModel.find({})
+
+  return res.send(users)
 })
 
-users.get('/:guid', (req, res) => {
-  const { guid } = req.params
+users.get('/:id', async (req, res) => {
+  const { id } = req.params
 
-  const user = USERS_BBDD.find(user => user.guid === guid)
+  const user = await userModel.findById(id)
 
   if (!user) return res.status(404).send()
 
@@ -35,16 +37,18 @@ users.get('/age/30', (req, res) => {
   return res.send(users)
 })
 
-users.post('/', (req, res) => {
+users.post('/', async (req, res) => {
   const { _id, index, guid, age, name, gender, company, email, phone} = req.body
 
   if (!name || !guid) return res.status(400).send()
 
-  const user = USERS_BBDD.find(user => user.guid === guid)
+  const user = await userModel.findById(guid).exec()
 
   if (user) return res.status(409).send()
 
-  USERS_BBDD.push({ _id, index, guid, age, name, gender, company, email, phone })
+  const newUser = new userModel({ _id, index, guid, age, name, gender, company, email, phone })
+
+  await newUser.save()
 
   return res.send()
 })
